@@ -1,0 +1,86 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    // Keep empty/default or remove if you don't need mode-level overrides
+    "build": {},
+    "compaction": {},
+    "explore": {},
+    "general": {},
+    "plan": {},
+    "summary": {},
+    "title": {}
+  },
+  "permission": {
+    "websearch": "ask",
+    "webfetch": "ask",
+  },
+  "provider": {
+    "koopa-gemma-4": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Gemma-4 26B A4B",
+      "options": {
+        "baseURL": "https://mlops-gate-any-mf-llm-qa.mf-mesh.be-intg-iz1-bs.poinfra.server.lan//gemma-4-26b-a4b-fp8-vllm/v1",
+        "setCacheKey": true
+      },
+      "models": {
+        "ensemble": {
+          "id": "ensemble",
+          "name": "Gemma-4 26B A4B",
+          "limit": {
+            "context": 131062,
+            "output": 16384
+          },
+          "sampling": {
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "top_k": 64
+          }
+        }
+      }
+    },
+    "koopa-deepseekv4-flash": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "DeepSeek V4 Flash (DGX)",
+      "options": {
+        "baseURL": "https://mlops-gate-any-mf-llm-live.mf-mesh.be-prod-iz2-bap.poinfra.server.lan/dgx/llm-large-2/v1",
+        "setCacheKey": true
+      },
+      "models": {
+        "ensemble": {
+          "id": "ensemble",
+          "name": "DeepSeek V4 Flash (DGX)",
+          "limit": {
+            "context": 262144,
+            "output": 16384
+          },
+          "options": {
+            "chat_template_kwargs": {
+              "reasoning_effort": "max",
+              "thinking": true
+            }
+          },
+          "sampling": {
+            "temperature": 1.0,
+            "top_p": 1.0
+          }
+
+        }
+      }
+    }
+  },
+  "mcp": {
+    "mam-mcp": {
+      "type": "local",
+      "command": ["mam-mcp"],
+      "enabled": false,
+      "env": {
+       "MAM_MCP_DISABLE_AI_PROVENANCE": "true"
+      }
+    },
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["npx", "-y", "chrome-devtools-mcp@latest", "--no-usage-statistics"],
+      "enabled": false,
+    }
+  },  
+}
