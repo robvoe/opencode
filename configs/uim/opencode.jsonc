@@ -72,7 +72,7 @@
     "mam-mcp": {
       "type": "local",
       "command": ["mam-mcp"],
-      "enabled": false,
+      "enabled": true,
       "env": {
        "MAM_MCP_DISABLE_AI_PROVENANCE": "true"
       }
