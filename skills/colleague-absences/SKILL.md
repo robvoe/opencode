@@ -1,0 +1,71 @@
+---
+name: colleague-absences
+description: Use when the user wants to know who is out of office in the United Internet corporate intranet (InsideNET) — current absences plus planned ones within the next ~2 weeks for a team/department — and wants it via a plain shell script (curl + python3, no browser/Chrome). Use ONLY with United Internet credentials; the public data for colleagues is privacy-restricted to the last two weeks plus upcoming absences.
+---
+
+# colleague-absences
+
+Show who is currently away / on business trip / planned to be away in the next two weeks, for a United Internet team (InsideNET org unit). Pure shell: authenticate once via CAS, then fetch the department absence list and render P1 (status table) plus P3 (day timeline).
+
+## Prerequisites
+
+- `curl` and `python3` (stdlib only) on the machine.
+- A United Internet (LDAP) account.
+- Running inside the corporate network / with appropriate network access.
+
+## Steps
+
+### 1. Authenticate (once per ~8 h session)
+
+Run the login helper; it prompts for your password (masked, never printed or put on the command line) and stores **two** cookie jars: the united-internet.org session and the contacts API session. If your account has a second factor enabled it additionally prompts for the authentication code from your authenticator app before completing the CAS login.
+
+```bash
+<skilldir>/colleague-absences-login.sh
+# optional: target a specific page instead of the intranet home (default)
+<skilldir>/colleague-absences-login.sh "https://united-internet.org/profiles/people/12345678"
+```
+
+This performs the CAS flow at `https://login.united-internet.org/ims-sso/login`, follows the redirect back through `/signin/casify/`, and also authenticates to the contacts API. It authenticates with the **current user** (`$USER`) — no personal ID or team ID is hardcoded anywhere.
+
+### 2. Show absences for your team (nothing to pass)
+
+The team is resolved **automatically** from the current user via the contacts API (`GET /persons/<username>` → `department_id`), so you don't have to know or provide your own or your team's ID.
+
+```bash
+<skilldir>/colleague-absences.sh
+```
+
+Optional override (only if you want another team):
+
+```bash
+<skilldir>/colleague-absences.sh 21443866
+INSIDE_DEPARTMENT_ID=21443866 <skilldir>/colleague-absences.sh
+```
+
+Environment overrides:
+
+| var | default | meaning |
+|-----|---------|---------|
+| `INSIDE_COOKIES` | `/tmp/inside.cookies` | united-internet.org session jar |
+| `INSIDE_CONTACTS_COOKIES` | `/tmp/contacts.cookies` | contacts API jar (used for team auto-resolution) |
+| `INSIDE_DEPARTMENT_ID` | *(none — auto-resolved)* | explicit team id override |
+
+Output = **P1**: two sections ("Heute abwesend" and "Kommende 2 Wochen") with columns *Name, Von, Bis, Tage, Grund, Stellvertreter, Team*; followed by **P3**: a day-by-day timeline over the next 14 days.
+
+### Under the hood
+
+- Resolves the team id from the current user: `GET https://contacts.united-internet.org/api/persons/<username>` → `department_id` (contacts jar).
+- Fetches `https://united-internet.org/vacation/list/department` (POST with `id=<dept>&start=<today-2d>&end=<today+21d>`), the same server-rendered list the "Abteilungs-Abwesenheiten" page shows.
+- Parses the HTML with `colleague_absences_parse.py` (stdlib python3), classifies rows into current (start ≤ today ≤ end) vs upcoming (start > today, ≤ today+14), and renders P1 + P3.
+- If the response redirects to `/signin/casify`, the session is expired → re-run step 1.
+
+## Pitfalls / limitations
+
+- **Data protection:** for *colleagues* the source only exposes the **last two weeks plus upcoming** absences ("Aus datenschutzrechtlichen Gründen können nur Abwesenheiten der letzten zwei Wochen angezeigt werden"). You can never pull a colleague's full-year history via this tool — that's a privacy boundary, not an endpoint restriction. Your own full history lives in `/vacation/list/personal` (self-service only, `id` parameter is ignored there).
+- **"Grund" is coarse:** the department list groups entries into sections (Abwesenheit / Geschäftsreise / zukünftig). It does *not* expose Urlaub vs Krankheit per person. If a finer reason is needed, only your own entries provide it.
+- **Session length:** ~8 h (JWT). When the table comes out empty or the script reports an expired session, re-auth with step 1. Auto-resolution additionally needs the contacts jar — if it fails with "Could not auto-resolve your team", re-login.
+- **2FA accounts:** the login helper prompts for an authenticator code after the password. A `login status: 200` with no `united-internet.org` cookie in the jar means the CAS login stalled (e.g. at the 2FA step or wrong credentials).
+- **Passwords never appear on the command line:** the login helper reads the password via `read -s` (masked), sends the CAS form field from a `0600` temp file (`--data-urlencode password@file`) and uses a `0600` temp netrc for the contacts API.
+- **No browser needed** — do not fall back to Chrome DevTools for this; the scripts replace it.
+- Shell gotcha: **do not name a variable `path` in zsh** (it is tied to `$PATH` and will break command lookup).
+- Reason labels are German by default (Urlaub/Krankheit/etc. would only be available for self data; the department list yields Abwesend/Dienstreise/Geplant).
