@@ -13,6 +13,9 @@
   "permission": {
     "websearch": "ask",
     "webfetch": "ask",
+    "skill": {
+      "gitlab-oauth-to-pat": "deny"
+    }
   },
   "provider": {
     "koopa-gemma-4": {
@@ -49,6 +52,35 @@
         "ensemble": {
           "id": "ensemble",
           "name": "DeepSeek V4 Flash (DGX)",
+          "limit": {
+            "context": 262144,
+            "output": 16384
+          },
+          "options": {
+            "chat_template_kwargs": {
+              "reasoning_effort": "max",
+              "thinking": true
+            }
+          },
+          "sampling": {
+            "temperature": 1.0,
+            "top_p": 1.0
+          }
+
+        }
+      }
+    },
+    "koopa-deepseekv4-flash-portforward": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "DeepSeek V4 Flash (DGX, PortForward)",
+      "options": {
+        "baseURL": "http://localhost:50151/v1",
+        "setCacheKey": true
+      },
+      "models": {
+        "ensemble": {
+          "id": "ensemble",
+          "name": "DeepSeek V4 Flash (DGX, PortForward)",
           "limit": {
             "context": 262144,
             "output": 16384

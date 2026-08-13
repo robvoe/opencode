@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
-"""Parse the InsideNET department absence list (HTML on stdin) and render:
+"""Parse InsideNET department absence lists (HTML) and render:
 
   P1  "Heute abwesend" (start <= today <= end) and "Kommende 2 Wochen"
       (start > today and start <= today+14) status table
   P3  day-by-day timeline over the next 14 days
 
-Reason labels are German. Depends only on the stdlib.
+Supports merging several teams: pass one or more "dept=file" arguments
+(e.g. "21443866=/tmp/x.html" "21681112=/tmp/y.html"). When no argument is
+given, HTML is read from stdin (single team, dept id "?").
+
+Duplicate absences (same person, same time span, same reason) that appear in
+more than one team list are merged into a single row. Reason labels are
+German. Depends only on the stdlib.
 """
 import re
 import sys
+import os
 import datetime
 from html import unescape
 
@@ -19,7 +26,6 @@ TODAY = datetime.date.today()
 WINDOW_DAYS = 14
 END_WINDOW = TODAY + datetime.timedelta(days=WINDOW_DAYS)
 
-# section heading -> (Grund label, kind: current|future)
 SECTION_MAP = {
     "Aktuelle Abwesenheiten": ("Abwesend", "current"),
     "Aktuelle Geschäftsreisen": ("Dienstreise", "current"),
@@ -52,7 +58,6 @@ def parse_rows(html):
             continue
         if 'class="row' not in tr_attrs:
             continue
-        # name = first person-link with text before the "Stellvertreter:" marker
         before_sub = tr.split("Stellvertreter:", 1)[0]
         nm = re.search(r'<a href="/network/people/view\?\d+">([^<]+)</a>', before_sub)
         if not nm:
@@ -78,6 +83,23 @@ def parse_rows(html):
     return entries
 
 
+def merge(entries):
+    """De-duplicate absences that appear identically in several team lists."""
+    seen = {}
+    out = []
+    for e in entries:
+        key = (e["name"], e["start"], e["end"], e["grund"])
+        if key in seen:
+            cur = seen[key]
+            cur["team_ids"].update(e.get("_team_ids", {e.get("_team", None): True}))
+            continue
+        e = dict(e)
+        e.setdefault("_team_ids", {e.get("_team", None): True})
+        seen[key] = e
+        out.append(e)
+    return out
+
+
 def classify(e):
     if e["start"] <= TODAY <= e["end"]:
         return "current"
@@ -90,11 +112,15 @@ def fmt_date(d):
     return d.strftime("%d.%m")
 
 
-def render(entries, dept_id):
+def render(entries, dept_ids):
+    entries = merge(entries)
     cur = [e for e in entries if classify(e) == "current"]
     fut = [e for e in entries if classify(e) == "future"]
 
-    print(f"Abwesenheiten für Team-ID {dept_id} (Stand: {TODAY:%d.%m.%Y})\n")
+    if len(dept_ids) > 1:
+        print(f"Abwesenheiten für {len(dept_ids)} Teams ({', '.join(dept_ids)}) (Stand: {TODAY:%d.%m.%Y})\n")
+    else:
+        print(f"Abwesenheiten für Team-ID {dept_ids[0] if dept_ids else '?'} (Stand: {TODAY:%d.%m.%Y})\n")
 
     def table(rows, title):
         print(title)
@@ -114,7 +140,6 @@ def render(entries, dept_id):
     table(cur, "HEUTE ABWESEND")
     table(fut, "KOMMENDE 2 WOCHEN")
 
-    # P3 timeline (merged per person)
     print("TIMELINE (nächste 14 Tage)\n")
     days = [TODAY + datetime.timedelta(days=i) for i in range(WINDOW_DAYS)]
     lbl = "".join(f" {d.strftime('%a')[:2]} {d.day:<2}" for d in days)
@@ -134,14 +159,31 @@ def render(entries, dept_id):
         chars = []
         for d in days:
             chars.append("▓▓" if s <= d <= en else "··")
-        print(f"{name:<24}{''.join(col + ' ' for col in chars)}")
+        print(f"{name:<24}{''.join('  ' + col + '  ' for col in chars)}")
     print()
 
 
 def main():
-    html = sys.stdin.buffer.read().decode("iso-8859-1")
-    dept_id = sys.argv[1] if len(sys.argv) > 1 else "?"
-    render(parse_rows(html), dept_id)
+    args = sys.argv[1:]
+    if not args:
+        html = sys.stdin.buffer.read().decode("iso-8859-1")
+        render(parse_rows(html), ["?"])
+        return
+    entries = []
+    dept_ids = []
+    for a in args:
+        dept, _, f = a.partition("=")
+        dept_ids.append(dept)
+        try:
+            with open(f, "rb") as fh:
+                html = fh.read().decode("iso-8859-1")
+        except OSError as exc:
+            sys.stderr.write(f"could not read {f}: {exc}\n")
+            continue
+        for e in parse_rows(html):
+            e["_team"] = dept
+            entries.append(e)
+    render(entries, dept_ids)
 
 
 if __name__ == "__main__":

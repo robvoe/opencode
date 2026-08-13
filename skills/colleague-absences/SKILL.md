@@ -29,13 +29,31 @@ This performs the CAS flow at `https://login.united-internet.org/ims-sso/login`,
 
 ### 2. Show absences for your team (nothing to pass)
 
-The team is resolved **automatically** from the current user via the contacts API (`GET /persons/<username>` → `department_id`), so you don't have to know or provide your own or your team's ID.
+The primary team is resolved **automatically** from the current user via the contacts API (`GET /persons/<username>` → `department_id`), so you don't have to know or provide your own or your team's ID.
 
 ```bash
 <skilldir>/colleague-absences.sh
 ```
 
-Optional override (only if you want another team):
+### 3. Merge multiple teams
+
+A user can be part of more than one team (e.g. an org department plus several functional teams/squads). To show **all** of them in one merged output:
+
+- **Default teams file** (recommended for "all my teams"): the script automatically reads `~/.config/colleague-absences/teams` if it exists — one team id per line. With it, the plain run above already merges every team you belong to, no arguments needed.
+- Or pass several team ids explicitly — as arguments, via the comma-separated env var, or via a custom config file:
+
+```bash
+# arguments (all teams on one line)
+<skilldir>/colleague-absences.sh 21443866 21606142 21681112
+
+# environment (comma separated)
+INSIDE_DEPARTMENT_IDS=21443866,21606142,21681112 <skilldir>/colleague-absences.sh
+
+# custom config file (one id per line, or ','/' ' separated)
+INSIDE_TEAMS_FILE=/path/to/teams.txt <skilldir>/colleague-absences.sh
+```
+
+When more than one team is given, the script fetches each team's absence list and merges them into a **single** P1 + P3 output. Absences of the same person that show up in several team lists (same person, same dates, same reason) are de-duplicated into one row. The single-team forms still work:
 
 ```bash
 <skilldir>/colleague-absences.sh 21443866
@@ -47,16 +65,20 @@ Environment overrides:
 | var | default | meaning |
 |-----|---------|---------|
 | `INSIDE_COOKIES` | `/tmp/inside.cookies` | united-internet.org session jar |
-| `INSIDE_CONTACTS_COOKIES` | `/tmp/contacts.cookies` | contacts API jar (used for team auto-resolution) |
-| `INSIDE_DEPARTMENT_ID` | *(none — auto-resolved)* | explicit team id override |
+| `INSIDE_CONTACTS_COOKIES` | `/tmp/contacts.cookies` | contacts API jar (used for primary-team auto-resolution) |
+| `INSIDE_DEPARTMENT_ID` | *(none — auto-resolved)* | single explicit team id override |
+| `INSIDE_DEPARTMENT_IDS` | *(none)* | comma-separated team ids to merge |
+| `INSIDE_TEAMS_FILE` | `~/.config/colleague-absences/teams` | config file with one team id per line (`' '`/`','` separated) |
 
 Output = **P1**: two sections ("Heute abwesend" and "Kommende 2 Wochen") with columns *Name, Von, Bis, Tage, Grund, Stellvertreter, Team*; followed by **P3**: a day-by-day timeline over the next 14 days.
 
+**The P3 timeline is mandatory output.** Always print it in full, in every answer — never omit, truncate, summarize, or ask whether the user wants it. Do not wait for a follow-up request.
+
 ### Under the hood
 
-- Resolves the team id from the current user: `GET https://contacts.united-internet.org/api/persons/<username>` → `department_id` (contacts jar).
-- Fetches `https://united-internet.org/vacation/list/department` (POST with `id=<dept>&start=<today-2d>&end=<today+21d>`), the same server-rendered list the "Abteilungs-Abwesenheiten" page shows.
-- Parses the HTML with `colleague_absences_parse.py` (stdlib python3), classifies rows into current (start ≤ today ≤ end) vs upcoming (start > today, ≤ today+14), and renders P1 + P3.
+- Resolves the **primary** team id from the current user: `GET https://contacts.united-internet.org/api/persons/<username>` → `department_id` (contacts jar). If you belong to several teams, the others are not auto-resolved (the person endpoint exposes only one department_id) — list them in `~/.config/colleague-absences/teams` (or pass them explicitly) as described in step 3.
+- Fetches `https://united-internet.org/vacation/list/department` (POST with `id=<dept>&start=<today-2d>&end=<today+21d>`) **once per team**, the same server-rendered list the "Abteilungs-Abwesenheiten" page shows.
+- Parses the HTML with `colleague_absences_parse.py` (stdlib python3), classifies rows into current (start ≤ today ≤ end) vs upcoming (start > today, ≤ today+14), de-duplicates identical absences across teams, and renders the merged P1 + P3.
 - If the response redirects to `/signin/casify`, the session is expired → re-run step 1.
 
 ## Pitfalls / limitations
