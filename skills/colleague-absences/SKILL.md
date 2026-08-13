@@ -27,6 +27,8 @@ Run the login helper; it prompts for your password (masked, never printed or put
 
 This performs the CAS flow at `https://login.united-internet.org/ims-sso/login`, follows the redirect back through `/signin/casify/`, and also authenticates to the contacts API. It authenticates with the **current user** (`$USER`) — no personal ID or team ID is hardcoded anywhere.
 
+> **Authentication is checked automatically — only log in if needed.** The main script (`colleague-absences.sh`) does **not** run the login helper for you; instead it *checks first* whether a valid session exists and only suggests logging in when necessary. Detection: an authenticated `GET /vacation/list/personal` returns `200`; an expired or missing session returns `302` (redirect to `/signin/casify`). If the session is missing/expired, the script prints an error and the exact login command to run — it never silently returns an empty absence table.
+
 ### 2. Show absences for your team (nothing to pass)
 
 The primary team is resolved **automatically** from the current user via the contacts API (`GET /persons/<username>` → `department_id`), so you don't have to know or provide your own or your team's ID.
@@ -79,13 +81,13 @@ Output = **P1**: two sections ("Heute abwesend" and "Kommende 2 Wochen") with co
 - Resolves the **primary** team id from the current user: `GET https://contacts.united-internet.org/api/persons/<username>` → `department_id` (contacts jar). If you belong to several teams, the others are not auto-resolved (the person endpoint exposes only one department_id) — list them in `~/.config/colleague-absences/teams` (or pass them explicitly) as described in step 3.
 - Fetches `https://united-internet.org/vacation/list/department` (POST with `id=<dept>&start=<today-2d>&end=<today+21d>`) **once per team**, the same server-rendered list the "Abteilungs-Abwesenheiten" page shows.
 - Parses the HTML with `colleague_absences_parse.py` (stdlib python3), classifies rows into current (start ≤ today ≤ end) vs upcoming (start > today, ≤ today+14), de-duplicates identical absences across teams, and renders the merged P1 + P3.
-- If the response redirects to `/signin/casify`, the session is expired → re-run step 1.
+- If the response redirects to `/signin/casify` mid-fetch, the session expired between the up-front probe and the request — re-run step 1 (the up-front probe catches this in the common case).
 
 ## Pitfalls / limitations
 
 - **Data protection:** for *colleagues* the source only exposes the **last two weeks plus upcoming** absences ("Aus datenschutzrechtlichen Gründen können nur Abwesenheiten der letzten zwei Wochen angezeigt werden"). You can never pull a colleague's full-year history via this tool — that's a privacy boundary, not an endpoint restriction. Your own full history lives in `/vacation/list/personal` (self-service only, `id` parameter is ignored there).
 - **"Grund" is coarse:** the department list groups entries into sections (Abwesenheit / Geschäftsreise / zukünftig). It does *not* expose Urlaub vs Krankheit per person. If a finer reason is needed, only your own entries provide it.
-- **Session length:** ~8 h (JWT). When the table comes out empty or the script reports an expired session, re-auth with step 1. Auto-resolution additionally needs the contacts jar — if it fails with "Could not auto-resolve your team", re-login.
+- **Session length:** ~8 h (JWT). The script detects an expired session up front (`HTTP 302` on the auth probe) and tells you to re-login — it does not return an empty table. Auto-resolution additionally needs the contacts jar — if it fails with "Could not auto-resolve your team", re-login.
 - **2FA accounts:** the login helper prompts for an authenticator code after the password. A `login status: 200` with no `united-internet.org` cookie in the jar means the CAS login stalled (e.g. at the 2FA step or wrong credentials).
 - **Passwords never appear on the command line:** the login helper reads the password via `read -s` (masked), sends the CAS form field from a `0600` temp file (`--data-urlencode password@file`) and uses a `0600` temp netrc for the contacts API.
 - **No browser needed** — do not fall back to Chrome DevTools for this; the scripts replace it.

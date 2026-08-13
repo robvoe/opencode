@@ -31,6 +31,39 @@ CONTACTS="${INSIDE_CONTACTS_COOKIES:-/tmp/contacts.cookies}"
 DEFAULT_TEAMS_FILE="${INSIDE_TEAMS_FILE:-${HOME}/.config/colleague-absences/teams}"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOGIN_HELPER="$DIR/colleague-absences-login.sh"
+
+# Tell the user how to authenticate (the login helper is interactive, so we
+# never run it for them — we only point them to it).
+suggest_login() {
+  echo "To log in, run:" >&2
+  echo "  ${LOGIN_HELPER}" >&2
+  echo "(you will be prompted for your password and, if enabled, an authenticator code)." >&2
+}
+
+# Verify the ui session BEFORE doing any work. An unauthenticated or expired
+# session must never silently produce an empty absence table. Detection: an
+# authenticated GET on /vacation/list/personal returns 200; without a valid
+# session the server 302-redirects to /signin/casify (curl -sS without -L
+# reports that as HTTP 302 rather than following it).
+ensure_ui_session() {
+  if [ ! -s "$COOKIES" ]; then
+    echo "ERROR: no session found in ${COOKIES} — you are not logged in." >&2
+    suggest_login
+    exit 1
+  fi
+  local code
+  code="$(curl -sS -o /dev/null --max-time 20 -b "$COOKIES" -w '%{http_code}' \
+    "https://united-internet.org/vacation/list/personal")" || {
+      echo "ERROR: could not reach united-internet.org to verify the session." >&2
+      exit 1
+    }
+  if [ "$code" != "200" ]; then
+    echo "ERROR: the session in ${COOKIES} is expired or not authenticated (HTTP ${code})." >&2
+    suggest_login
+    exit 1
+  fi
+}
 
 resolve_primary() {
   curl -sS --max-time 20 -b "$CONTACTS" \
@@ -62,12 +95,14 @@ collect_departments() {
   else
     local primary
     if [ ! -f "$CONTACTS" ]; then
-      echo "No contacts session ($CONTACTS). Run colleague-absences-login.sh first." >&2
+      echo "No contacts API session ($CONTACTS); cannot auto-resolve your team." >&2
+      suggest_login
       exit 1
     fi
     primary="$(resolve_primary)"
     if [ -z "$primary" ]; then
-      echo "Could not auto-resolve your team (contacts session expired?). Re-run colleague-absences-login.sh or pass one or more DEPARTMENT_IDs." >&2
+      echo "Could not auto-resolve your team (contacts session expired?)." >&2
+      suggest_login
       exit 1
     fi
     ids+=("$primary")
@@ -75,10 +110,8 @@ collect_departments() {
   printf '%s\n' "${ids[@]}"
 }
 
-if [ ! -f "$COOKIES" ]; then
-  echo "No session found in $COOKIES. Run colleague-absences-login.sh first." >&2
-  exit 1
-fi
+# Check authentication first — only proceed if the session is actually valid.
+ensure_ui_session
 
 DEPTS=()
 while IFS= read -r dep; do
