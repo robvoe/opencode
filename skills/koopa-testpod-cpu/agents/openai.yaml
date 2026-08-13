@@ -1,0 +1,5 @@
+interface:
+  display_name: koopa-testpod-cpu
+  short_description: Temporary CPU-only test pod in the koopa Kubernetes clusters
+policy:
+  allow_implicit_invocation: true
