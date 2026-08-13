@@ -1,9 +1,9 @@
 ---
-name: koopa-testpod
+name: koopa-testpod-gpu
 description: Use when the user wants to spin up a temporary, interactive GPU test pod in the koopa kubernetes environment (LLM namespaces like mf-llm-qa), so they can poke around and test things on a real GPU (T4 / A100 / H100) with a real network-mounted model store. Runs a GPU-centric two-survey flow: (1) ask only the environment (QA/intg or live/prod, never the datacenter/cluster), run the scout script and present its plain output as a markdown grid table (columns = GPU classes), then (2) foreground the GPU-class decision and settle all pod specs — GPU class/VRAM, CPU, RAM, image, volume mount, security context — before deploying the manifest, verifying GPU + mount from inside, and exec-ing into the shell. Use ONLY when targeting these koopa clusters.
 ---
 
-# koopa-testpod
+# koopa-testpod-gpu
 
 Spin up a **temporary GPU test pod** in the koopa Kubernetes clusters (the LLM namespaces: `mf-llm-*`, `mf-sda-llm-*`). It is an interactive, disposable environment: a real GPU, a network-mounted model store, and a shell to poke around in. Nothing about it is persistent.
 
