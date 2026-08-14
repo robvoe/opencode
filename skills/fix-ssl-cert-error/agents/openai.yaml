@@ -1,0 +1,3 @@
+interface:
+  display_name: Fix SSL certificate verification error
+  short_description: Fix Python TLS certificate verification failures (REQUESTS_CA_BUNDLE) against self-signed internal gateways, with exact PyCharm / VS Code / shell instructions.
