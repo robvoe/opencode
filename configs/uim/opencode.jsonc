@@ -1,5 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "plugin": ["superpowers@git+https://github.com/obra/superpowers.git"],
   "agent": {
     // Keep empty/default or remove if you don't need mode-level overrides
     "build": {},
