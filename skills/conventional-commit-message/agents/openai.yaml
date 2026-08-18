@@ -1,0 +1,3 @@
+interface:
+  display_name: Conventional Commit Message
+  short_description: Draft a conventional commit message for the current git changes against the project rule set.
