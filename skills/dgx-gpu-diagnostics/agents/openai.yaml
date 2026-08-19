@@ -1,0 +1,3 @@
+interface:
+  display_name: DGX GPU Diagnostics
+  short_description: Sequentially diagnose NVIDIA GPUs on DGX workers with controlled Slurm allocation and cleanup.
