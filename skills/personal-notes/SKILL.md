@@ -127,10 +127,16 @@ and coherent, but preserve source captures and meaningful history.
 
 Apply only unambiguous local changes automatically. For uncertain moves,
 merges, project relationships, or policy changes, explain the evidence and ask
-the user. Record confirmed relationships and rejected hypotheses in
-`CONVENTIONS.md` so the same question is not asked again. If recurring friction
-suggests a better structure or policy, propose the change with rationale and
-wait for approval before updating conventions.
+the user. When the capture or reorganization raises a substantive decision
+about layout, splitting, merging, promotion, naming, relationships, or policy,
+invoke `/grilling` and conduct its interview one question at a time. Include a
+recommended answer, challenge assumptions, and continue until the user and the
+skill share an understanding of the proposed structure. Do not make the
+uncertain change before that grilling is complete and the user has approved it.
+Record confirmed relationships and rejected hypotheses in `CONVENTIONS.md` so
+the same question is not asked again. If recurring friction suggests a better
+structure or policy, use `/grilling` to examine the proposal, then request
+approval before updating conventions.
 
 External links are purpose-driven inputs, not an invitation to crawl. Fetch a
 link only when needed to answer the user's request, extract relevant material,
