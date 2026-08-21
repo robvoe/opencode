@@ -14,6 +14,9 @@
   "permission": {
     "websearch": "ask",
     "webfetch": "ask",
+    "external_directory": {
+      "/Users/rvoelckner/workspace/personal-notes/**": "allow"
+    },
     "skill": {
       "gitlab-oauth-to-pat": "deny"
     }
@@ -46,7 +49,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "DeepSeek V4 Flash (DGX)",
       "options": {
-        "baseURL": "https://mlops-gate-any-mf-llm-live.mf-mesh.be-prod-iz2-bap.poinfra.server.lan/dgx/llm-large-2/v1",
+        "baseURL": "https://mlops-gate-any-mf-llm-live.mf-mesh.be-prod-iz2-bap.poinfra.server.lan/dgx/llm-large-1/v1",
         "setCacheKey": true
       },
       "models": {

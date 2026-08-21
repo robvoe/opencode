@@ -35,7 +35,7 @@ personal-notes/
 ├── README.md
 ├── index.md
 ├── CONVENTIONS.md
-├── inbox/
+├── inbox/           # fallback queue: unassignable / mostly-unrelated captures
 ├── meetings/
 ├── projects/
 ├── topics/
@@ -69,6 +69,72 @@ than mutually exclusive taxonomic types. Keep nesting shallow and link notes
 with relative Markdown links. Maintain `index.md` as a useful navigation entry
 point, updating it when notes are added, renamed, split, merged, or promoted.
 
+## Single Source, No Redundancy
+
+The collection is a single source of truth. Each fact, decision, question, and
+task lives exactly once, in the note where it best belongs; every other
+mention is a link, not a copy.
+
+- No verbatim dump copies by default. A raw paste is reorganized directly into
+  its topic / project / meeting notes — completely and faithfully.
+- If you catch yourself copying content from one note into another (indexes,
+  cheatsheets, overviews, backlogs, status lists), replace it with a one-line
+  pointer + link. Aggregation views contain pointers and scan-lines only.
+- The original text stays available to the user (chat history, source file);
+  do not mirror it into the collection "just in case".
+- Exception: content that cannot be assigned to any topic is kept verbatim in
+  `inbox/` (see Inbox & Digest).
+
+## Inbox & Digest
+
+`inbox/` is a fallback landing zone, not the default capture path.
+
+- **When is something inboxed?** Only when it cannot be assigned to any
+  existing or obvious topic and its classification is genuinely unclear.
+- Whole dumps may land in `inbox/` IF their points are mostly unrelated. If
+  several points ARE related, draw conclusions and pull them together into a
+  topic note — even a temporary one.
+- Each inbox item is a dated capture plus a reason why it was unassigned.
+- **Digest trigger:** after placing new information, re-examine ALL inbox
+  items; if the new context now makes assignment possible, promote the item
+  into its topic note and remove it from the inbox. Unresolved items stay.
+- The user may invoke "digest my inbox" at any time.
+- Digestion is automatic; see Automation & Approval Boundary for when
+  approval is required.
+
+## Open Questions Lifecycle
+
+- Full question text lives in the topic / project / meeting note where its
+  context is, marked as an open question.
+- A research-backlog file (e.g. `tasks/active.md`) keeps ONE tickable line per
+  open question: checkbox + short question + link to the owning note. It is an
+  index, never a duplicate of the question text.
+- When a question is answered: write the answer into the owning note (keep the
+  question so the answer has context), tick the backlog line, and archive it.
+
+## Automation & Approval Boundary
+
+Handling and digesting of information is automatic by default; approval is
+required only before MAJOR changes.
+
+Automatic (no approval):
+
+- Creating new topic / project / meeting / activity notes from ingest.
+- Appending new facts to existing notes.
+- Digesting `inbox/` → promoting an item into a NEW note, or moving content.
+- Adding / repairing links; ticking and archiving clearly completed tasks.
+
+Requires approval (always):
+
+- Overwriting or deleting existing content in a note.
+- Splitting, merging, renaming, or moving notes.
+- Promoting an inbox item by merging into an EXISTING note (structural).
+- Any structural reorganization of the collection; archiving large sections.
+
+Transparency: after an automatic digest, report a compact audit line —
+"digested X → Y; Z stayed in inbox" — so the user can review without being
+bothered to pre-approve.
+
 ## Write And Promote
 
 When the user gives raw information, links, meeting notes, or files:
@@ -76,10 +142,11 @@ When the user gives raw information, links, meeting notes, or files:
 1. Capture the information without inventing facts or losing provenance.
 2. Identify actionable tasks, durable knowledge, decisions, activities,
    people, projects, topics, and likely relationships.
-3. Put the capture in the most appropriate shallow location, creating a new
-   note when no existing note fits.
+3. Put related points in the most appropriate shallow location immediately,
+   creating a new note when no existing note fits (even a temporary one).
+   Only genuinely unassignable / mostly-unrelated content goes to `inbox/`.
 4. Promote stable facts, decisions, and tasks into the relevant topic or
-   project notes and link them back to the source capture.
+   project notes, linking as needed.
 5. Repair or add links between related notes and referenced files.
 6. Preserve uncertainty explicitly rather than presenting an inference as a
    fact.
@@ -149,11 +216,14 @@ structure, duplicate notes, misplaced information, missing links, project
 aliases, topic shifts, and opportunities to split, merge, or move information.
 Preserve source captures and meaningful history.
 
-Never start or apply reorganization automatically, even when the change seems
-obvious. Detection during another operation may produce a concise proposal,
-but the skill must ask whether to start it now or postpone it. Record deferred
-proposals in a suitable task, activity, or conventions section so they can be
-started later without repeating the analysis.
+Never start or apply **structural** reorganization automatically, even when
+the change seems obvious. Detection during another operation may produce a
+concise proposal, but the skill must ask whether to start it now or postpone
+it. Record deferred proposals in a suitable task, activity, or conventions
+section so they can be started later without repeating the analysis.
+
+Note: this applies to structural reorganization only. Routine ingest and
+inbox digestion are automatic (see Automation & Approval Boundary).
 
 Explicit requests such as “reorganize my notes” or approval to start a detected
 proposal begin the reorganization process. Before changing layout, splitting,
