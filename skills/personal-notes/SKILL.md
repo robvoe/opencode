@@ -52,6 +52,13 @@ links, and source files. Markdown is the primary format. Scripts, images,
 exports, and other files may accompany notes, but every such file must be
 referenced from a Markdown note with a relative link.
 
+Dates are required by default because they make freshness and history visible.
+Add `Created` and `Updated` dates to notes, event dates to meetings and
+activities, and `Due` or `Reminder` dates to tasks when applicable. Preserve
+source dates when importing or promoting information. Never invent a date; omit
+it or mark it unknown when no meaningful date is available. Undated evergreen
+notes are an explicit exception, not the default.
+
 Meeting notes are first-class capture documents. Preserve the original capture
 and any supplied text or other source file. Extract durable facts, decisions,
 tasks, relationships, and useful links into linked notes when that improves
@@ -76,6 +83,16 @@ When the user gives raw information, links, meeting notes, or files:
 5. Repair or add links between related notes and referenced files.
 6. Preserve uncertainty explicitly rather than presenting an inference as a
    fact.
+
+When a user supplies a link, identify what it is about and what useful
+information it may contain. When the purpose requires following it, create or
+update a topic-relevant link dossier with the source URL, title, access or
+updated date when known, a concise summary, relevant sections or facts, and
+links discovered on the page with a hint about what each linked page contains.
+Extract enough attributed information to remain useful if the source later
+becomes unavailable, without mirroring or bulk-importing the page. Mark links
+as inaccessible, stale, or needing verification when appropriate and preserve
+the last verified information.
 
 Tasks use optional dates and this shape when metadata is useful:
 
@@ -113,30 +130,50 @@ Support at least these views:
 - Meeting decisions, unresolved questions, and linked follow-up tasks
 - Related notes, duplicate information, and missing links
 
+Use progressive retrieval to protect the context window. First load only the
+smallest relevant index, convention, topic, task, or activity files. Follow
+links to additional notes only as needed. Search archived or unrelated files
+only when the relevant current material is insufficient or the user asks for
+history. Summarize intermediate findings rather than loading an entire archive
+into context.
+
 Reminders are derived from explicit reminder or due dates. Surface them when
 asked, during relevant writes, or when a requested review makes them useful.
 Do not claim to send proactive notifications without a separate scheduler or
 calendar integration.
 
-## Reorganize Continuously
+## Reorganize On Proposal
 
 After every write and when explicitly asked, inspect for stale or conflicting
 structure, duplicate notes, misplaced information, missing links, project
-aliases, and opportunities to split or merge notes. Keep the collection alive
-and coherent, but preserve source captures and meaningful history.
+aliases, topic shifts, and opportunities to split, merge, or move information.
+Preserve source captures and meaningful history.
 
-Apply only unambiguous local changes automatically. For uncertain moves,
-merges, project relationships, or policy changes, explain the evidence and ask
-the user. When the capture or reorganization raises a substantive decision
-about layout, splitting, merging, promotion, naming, relationships, or policy,
-invoke `/grilling` and conduct its interview one question at a time. Include a
-recommended answer, challenge assumptions, and continue until the user and the
-skill share an understanding of the proposed structure. Do not make the
-uncertain change before that grilling is complete and the user has approved it.
+Never start or apply reorganization automatically, even when the change seems
+obvious. Detection during another operation may produce a concise proposal,
+but the skill must ask whether to start it now or postpone it. Record deferred
+proposals in a suitable task, activity, or conventions section so they can be
+started later without repeating the analysis.
+
+Explicit requests such as “reorganize my notes” or approval to start a detected
+proposal begin the reorganization process. Before changing layout, splitting,
+merging, promotion, naming, relationships, or policy, invoke `/grilling` and
+conduct its interview one question at a time. Include a recommended answer,
+challenge assumptions, and continue until the user and the skill share an
+understanding of the proposed structure. Do not make changes until the user
+has approved the settled result.
+
 Record confirmed relationships and rejected hypotheses in `CONVENTIONS.md` so
 the same question is not asked again. If recurring friction suggests a better
 structure or policy, use `/grilling` to examine the proposal, then request
 approval before updating conventions.
+
+Archive dated work records once they are more than one year old: meeting
+notes, completed or cancelled tasks, activity records, and historical project
+logs. Keep evergreen topic knowledge, active tasks, current project references,
+decisions, and link dossiers readily available. Preserve links and provenance
+when moving records into archive locations. Archived material remains
+searchable, but is loaded only when relevant or explicitly requested.
 
 External links are purpose-driven inputs, not an invitation to crawl. Fetch a
 link only when needed to answer the user's request, extract relevant material,
