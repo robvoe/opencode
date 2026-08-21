@@ -1,0 +1,3 @@
+interface:
+  display_name: DGX vLLM nginx deployment
+  short_description: Deploy, verify, benchmark, and clean up DGX vLLM replicas behind nginx.
