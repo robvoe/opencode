@@ -245,6 +245,25 @@ asked, during relevant writes, or when a requested review makes them useful.
 Do not claim to send proactive notifications without a separate scheduler or
 calendar integration.
 
+## External Consumers
+
+Other opencode skills (and workflows) that need knowledge held in this
+collection must consume it through the `personal-notes` skill, not around it:
+
+- Resolve the collection via this skill; navigate from `index.md` (searching
+  for the relevant topic) and follow links — **never hardcode a note path**,
+  since notes may be renamed or reorganized (the index is the stable entry
+  point).
+- Load **only the sections a workflow actually needs** (heading scan first,
+  then targeted reads), not whole notes or the whole collection, to protect
+  the context window.
+- Prefer links over duplicating facts; do not copy collection content into
+  consumer skills (single source of truth).
+
+Apply this to any knowledge this collection holds — not just one topic. When a
+consumer skill is (re)written against the collection, follow these rules and
+state them in that skill's background section.
+
 ## Reorganize On Proposal
 
 After every write and when explicitly asked, inspect for stale or conflicting

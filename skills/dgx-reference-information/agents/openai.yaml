@@ -1,3 +1,0 @@
-interface:
-  display_name: DGX Reference Information
-  short_description: Complete reusable context for DGX architecture, access, Slurm, containers, storage, and discovery.
