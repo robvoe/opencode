@@ -26,6 +26,19 @@ links the user supplied.
 Do not encode the collection path anywhere else in this skill. The path file is
 machine-specific and may be changed when using the skill on another machine.
 
+## Rule Home: skill vs CONVENTIONS
+
+Generalizable policy and guardrails live **only in this skill** — it is reused
+in other contexts and must behave the same everywhere. The collection's
+`CONVENTIONS.md` records only collection-specific decisions (choices particular
+to this user/collection) and may *point* to a skill rule, but never restates it.
+
+- Never duplicate a generalizable rule into `CONVENTIONS.md`.
+- When a rule in `CONVENTIONS.md` proves general enough, move it into the skill
+  and replace the convention entry with a one-line pointer.
+- When editing rules, update the skill as the single source, then adjust any
+  pointers in `CONVENTIONS.md` if wording changed.
+
 ## Collection Model
 
 Prefer a shallow, flexible layout. Create directories and files lazily:
@@ -111,6 +124,29 @@ mention is a link, not a copy.
   index, never a duplicate of the question text.
 - When a question is answered: write the answer into the owning note (keep the
   question so the answer has context), tick the backlog line, and archive it.
+
+## Task Ownership
+
+`tasks/` (active + archive) tracks **only items the user owns** — things the
+user will act on, decide, or follow up (e.g. "ask Jan X", "deploy Qwen3"). It
+never tracks work the user asked the assistant to carry out itself.
+
+- Assistant-executed work (ingest, fetches, downloads, conversions,
+  restructuring) is executed, not tracked: the outcome lives in the notes as
+  facts, links, decisions, and referenced files. No task item is created, and
+  such work is never archived as a task either — only the user's work history
+  (`activity/`) and user-owned tasks (`tasks/`) are recorded.
+- The research backlog of open questions in `tasks/active.md` **is** the
+  user's: the user's own open knowledge gaps, with the full question kept in
+  the owning topic note.
+- Bias: when ownership is unclear, lean toward "not the user's task". If it is
+  genuinely ambiguous whether an item is a user follow-up, ask one short inline
+  question instead of silently creating a task.
+- Blocked work: if the assistant cannot complete requested work (e.g. the
+  source needs SSO the assistant can't reach), ask the user immediately for
+  what is needed. Only if the user explicitly opts to defer and track it does
+  it become a user task. Harmless note-level breadcrumbs ("content not yet
+  ingested") may stay in the relevant note as facts — but not as tasks.
 
 ## Automation & Approval Boundary
 
@@ -305,4 +341,6 @@ unless explicitly requested.
 - Do not repeatedly ask a relationship question already recorded as accepted or
   rejected.
 - Do not fetch links speculatively or bulk-copy external content.
+- Task ownership: follow the 'Task Ownership' section — never track
+  assistant-executed work; ask the user on ambiguity.
 - Keep all references to this skill's own files relative using `<skilldir>/`.
